@@ -1,6 +1,3 @@
-# Milestone 2 - Hugging Face Transformers & Datasets
-# Simple student-style code
-
 import torch
 from datasets import load_dataset
 from transformers import (
@@ -17,9 +14,6 @@ from sentence_transformers import util
 DATA_PATH = r"D:\smart-mcq-solver-challenge\train.csv"
 OPTIONS = ["A", "B", "C", "D", "E"]
 
-print("=" * 60)
-print("MILESTONE 2 - HUGGING FACE ANSWERS")
-print("=" * 60)
 
 
 def map_at_k(true_answer, predictions, k=3):
@@ -28,10 +22,6 @@ def map_at_k(true_answer, predictions, k=3):
         return 1.0 / (preds.index(true_answer) + 1)
     return 0.0
 
-
-# ------------------------------------------------------------
-# Load data using Hugging Face datasets (NOT pandas)
-# ------------------------------------------------------------
 dataset = load_dataset("csv", data_files={"train": DATA_PATH})["train"]
 
 # Q1: combined_text = prompt + " " + A
@@ -41,10 +31,8 @@ q1_answer = len(dataset[51]["combined_text"])
 print(f"\nQ1 - Character length of combined_text at index 51: {q1_answer}")
 print(f"ANSWER Q1: {q1_answer}")
 
-
-# ------------------------------------------------------------
 # Q2 & Q3: bert-base-uncased tokenizer
-# ------------------------------------------------------------
+
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 q2_answer = tokenizer.vocab_size
@@ -56,9 +44,8 @@ print(f"\nQ3 - [SEP] token ID: {q3_answer}")
 print(f"ANSWER Q3: {q3_answer}")
 
 
-# ------------------------------------------------------------
 # Q4: Tokenize full prompt column
-# ------------------------------------------------------------
+
 encoded = tokenizer(
     list(dataset["prompt"]),
     padding="max_length",
@@ -71,9 +58,8 @@ print(f"\nQ4 - input_ids tensor shape: {q4_answer}")
 print(f"ANSWER Q4: {q4_answer}")
 
 
-# ------------------------------------------------------------
 # Q5: Attention head dimension
-# ------------------------------------------------------------
+
 hidden_size = 768
 num_heads = 12
 q5_answer = hidden_size // num_heads
@@ -81,9 +67,8 @@ print(f"\nQ5 - Each attention head size: {q5_answer}")
 print(f"ANSWER Q5: {q5_answer}")
 
 
-# ------------------------------------------------------------
 # Q6: last_hidden_state shape for row index 0
-# ------------------------------------------------------------
+
 model = AutoModel.from_pretrained("bert-base-uncased")
 
 row0_prompt = dataset[0]["prompt"]
@@ -97,18 +82,16 @@ print(f"\nQ6 - last_hidden_state shape: {q6_answer}")
 print(f"ANSWER Q6: {q6_answer}")
 
 
-# ------------------------------------------------------------
 # Q7: Sum of first 5 values in [CLS] vector
-# ------------------------------------------------------------
+
 cls_vector = outputs.last_hidden_state[0, 0, :]
 q7_answer = round(float(cls_vector[:5].sum()), 4)
 print(f"\nQ7 - Sum of first 5 CLS values: {q7_answer}")
 print(f"ANSWER Q7: {q7_answer}")
 
 
-# ------------------------------------------------------------
 # Q8: Attention weight CLS -> fusion
-# ------------------------------------------------------------
+
 attn_model = AutoModel.from_pretrained("bert-base-uncased", output_attentions=True)
 
 test_string = "Light-ion fusion is a technique."
@@ -137,9 +120,8 @@ print(f"Q8 - fusion token index: {fusion_idx}, token: {tokens[fusion_idx]}")
 print(f"ANSWER Q8: {q8_answer}")
 
 
-# ------------------------------------------------------------
 # Q9: MiniLM cosine similarity (prompt vs option B, row 0)
-# ------------------------------------------------------------
+
 st_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 prompt_emb = st_model.encode(dataset[0]["prompt"], convert_to_tensor=True)
@@ -150,9 +132,8 @@ print(f"\nQ9 - MiniLM cos_sim (prompt vs B, row 0): {q9_answer}")
 print(f"ANSWER Q9: {q9_answer}")
 
 
-# ------------------------------------------------------------
 # Q10: TF-IDF vs MiniLM pipelines
-# ------------------------------------------------------------
+
 print("\nQ10 - Running TF-IDF and MiniLM pipelines on full train set...")
 
 # TF-IDF setup (same as milestone 1)
@@ -208,9 +189,8 @@ print(f"ANSWER Q10a: {q10a_answer}")
 print(f"ANSWER Q10b: {q10b_answer}")
 
 
-# ------------------------------------------------------------
 # Q11: Zero-shot classification (softmax)
-# ------------------------------------------------------------
+
 zs_pipe = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
 
 row1 = dataset[1]
@@ -226,9 +206,8 @@ print(f"ANSWER Q11: {q11_answer}")
 softmax_sum = sum(zs_result["scores"])
 
 
-# ------------------------------------------------------------
 # Q12: Zero-shot with multi_label=True (sigmoid)
-# ------------------------------------------------------------
+
 zs_multi = zs_pipe(row1["prompt"], candidate_labels, multi_label=True)
 sigmoid_sum = sum(zs_multi["scores"])
 
@@ -237,9 +216,8 @@ print(f"\nQ12 - Softmax sum: {softmax_sum}, Sigmoid sum: {sigmoid_sum}")
 print(f"ANSWER Q12: {q12_answer}")
 
 
-# ------------------------------------------------------------
 # Q13: flan-t5-small text2text generation
-# ------------------------------------------------------------
+
 t5_tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
 t5_model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
 
@@ -257,23 +235,3 @@ print(f"\nQ13 - Generated text: {q13_answer}")
 print(f"ANSWER Q13: {q13_answer}")
 
 
-# ------------------------------------------------------------
-# SUMMARY
-# ------------------------------------------------------------
-print("\n" + "=" * 60)
-print("SUMMARY OF ALL ANSWERS")
-print("=" * 60)
-print(f"Q1:   {q1_answer}")
-print(f"Q2:   {q2_answer}")
-print(f"Q3:   {q3_answer}")
-print(f"Q4:   {q4_answer}")
-print(f"Q5:   {q5_answer}")
-print(f"Q6:   {q6_answer}")
-print(f"Q7:   {q7_answer}")
-print(f"Q8:   {q8_answer}")
-print(f"Q9:   {q9_answer}")
-print(f"Q10a: {q10a_answer}")
-print(f"Q10b: {q10b_answer}")
-print(f"Q11:  {q11_answer}")
-print(f"Q12:  {q12_answer}")
-print(f"Q13:  {q13_answer}")
